@@ -1,0 +1,19 @@
+# Node
+node_modules
+pnpm-lock.yaml
+
+# Build artifacts
+dist
+.next
+
+# Env
+.env
+.env.*
+*.env
+
+# Docker
+postgres_data
+
+# IDE
+.idea
+.vscode
