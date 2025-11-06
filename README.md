@@ -141,7 +141,6 @@ pnpm --filter web dev
   Execute estes comandos na raiz do projeto.
   
 #### **Rodar Migrations**
-    <br />
   **(Para aplicar qualquer mudança do schema.prisma no banco)**
   ```bash
     pnpm --filter api run prisma:dev
