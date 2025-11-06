@@ -2,14 +2,14 @@ version: "3.8"
 services:
     db:
         image: postgres:15
-        container_name: oficina-digital-db
+        container_name: meca-tech-db
         restart: always
         ports:
             - "5432:5432"
         environment:
             POSTGRES_USER: admin
             POSTGRES_PASSWORD: password
-            POSTGRES_DB: oficina_digital
+            POSTGRES_DB: meca_tech
         volumes:
             - postgres_data:/var/lib/postgresql/data
 

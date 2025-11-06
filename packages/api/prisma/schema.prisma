@@ -1,15 +1,107 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Client {
+  id     String   @id @default(uuid())
+  name   String
+  phone  String?
+  email  String? @unique
+  
+  vehicles Vehicle[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Vehicle {
+  id      String  @id @default(uuid())
+  plate   String  @unique
+  model   String
+  brand   String
+  year    Int
+  color   String?
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  serviceOrders ServiceOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Part {
+  id    String @id @default(uuid())
+  name  String
+  sku   String @unique
+  stock Int    @default(0)
+  price Float
+
+  serviceOrders PartsOnServiceOrders[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Service {
+  id          String  @id @default(uuid())
+  name        String 
+  description String?
+  price       Float 
+
+  serviceOrders ServiceOrder[] @relation("ServiceToOrder")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ServiceOrder {
+  id     String           @id @default(uuid())
+  status ServiceOrderStatus @default(PENDING)
+  
+  vehicleId String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id])
+
+  parts PartsOnServiceOrders[]
+
+  services Service[] @relation("ServiceToOrder")
+
+  publicToken String @unique @default(cuid())
+
+  totalPartsPrice  Float @default(0)
+  totalServicesPrice Float @default(0)
+  totalPrice         Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PartsOnServiceOrders {
+  serviceOrderId String
+  serviceOrder   ServiceOrder @relation(fields: [serviceOrderId], references: [id])
+  
+  partId String
+  part   Part @relation(fields: [partId], references: [id])
+
+  quantity Int
+
+  @@id([serviceOrderId, partId])
+}
+
+
+// ENUM: Possible statuses for the Service Order
+enum ServiceOrderStatus {
+  PENDING     // Pending Budget/Quote
+  WAITING     // Waiting Client Approval
+  APPROVED    // Approved
+  REJECTED    // Rejected
+  IN_PROGRESS // In Progress
+  COMPLETED   // Completed (Ready for pickup)
+  CLOSED      // Closed (Picked up/Billed)
 }
