@@ -1,4 +1,5 @@
 import {Provider} from "@/components/ui/provider";
+import {DashboardLayout} from "@/components/templates/DashboardLayout";
 import "./globals.css";
 import type {Metadata} from "next";
 
@@ -12,7 +13,9 @@ export default function RootLayout(props: {children: React.ReactNode}) {
     return (
         <html lang="en" suppressHydrationWarning>
             <body>
-                <Provider>{children}</Provider>
+                <Provider>
+                    <DashboardLayout>{children}</DashboardLayout>
+                </Provider>
             </body>
         </html>
     );
