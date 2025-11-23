@@ -15,5 +15,5 @@ async function getClients(): Promise<Client[]> {
 export default async function ClientsPage() {
     const clients = await getClients();
 
-    return <ClientsView initialData={clients} />;
+    return <ClientsView initialClients={clients} />;
 }

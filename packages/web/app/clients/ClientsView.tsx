@@ -1,39 +1,34 @@
 "use client";
 
-import {Box, Button, Heading, Stack, useDisclosure} from "@chakra-ui/react";
-import {useState} from "react";
+import {Box, Button, Heading, HStack, useDisclosure} from "@chakra-ui/react";
+import {useRouter} from "next/navigation";
 import {Client} from "@/types/client";
 import {ClientTable} from "@/components/organisms/ClientTable";
 import {AddClientDialog} from "@/components/organisms/AddClientDialog";
+import {Plus} from "lucide-react";
 
 interface ClientsViewProps {
-    initialData: Client[];
+    initialClients: Client[];
 }
 
-export function ClientsView({initialData}: ClientsViewProps) {
-    const [clients, setClients] = useState<Client[]>(initialData);
-
+export function ClientsView({initialClients}: ClientsViewProps) {
     const {open, onOpen, onClose} = useDisclosure();
+    const router = useRouter();
 
-    const handleClientCreated = (newClient: Client) => {
-        setClients((currentClients) => [...currentClients, newClient]);
+    const handleClientCreated = () => {
+        router.refresh();
     };
 
     return (
-        <Box p={8}>
-            <Stack
-                direction="row"
-                justify="space-between"
-                align="center"
-                mb={8}
-            >
-                <Heading size="lg">Clients</Heading>
-                <Button colorScheme="blue" onClick={onOpen}>
-                    Add New Client
+        <Box>
+            <HStack justify="space-between" mb={6}>
+                <Heading size="lg">Clientes</Heading>
+                <Button onClick={onOpen} colorScheme="blue">
+                    <Plus /> Novo Cliente
                 </Button>
-            </Stack>
+            </HStack>
 
-            <ClientTable clients={clients} />
+            <ClientTable clients={initialClients} />
 
             <AddClientDialog
                 open={open}

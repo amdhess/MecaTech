@@ -14,7 +14,6 @@ import {Field} from "@/components/ui/field";
 import {Button, Input, Stack} from "@chakra-ui/react";
 import {useForm} from "react-hook-form";
 import {api} from "@/lib/api";
-import {Client} from "@/types/client";
 import toast from "react-hot-toast";
 
 type FormData = {
@@ -26,7 +25,7 @@ type FormData = {
 interface AddClientDialogProps {
     open: boolean;
     onClose: () => void;
-    onClientCreated: (newClient: Client) => void;
+    onClientCreated: () => void; // Alterado para void (padrão novo)
 }
 
 export function AddClientDialog({
@@ -43,14 +42,13 @@ export function AddClientDialog({
 
     const onSubmit = async (data: FormData) => {
         try {
-            const response = await api.post("/client", data);
-            onClientCreated(response.data);
-            toast.success("Client created successfully!");
-            reset();
-            onClose();
+            await api.post("/client", data);
+            toast.success("Cliente cadastrado com sucesso!");
+            onClientCreated(); // Apenas avisa
+            handleClose();
         } catch (error) {
-            console.error("Failed to create client:", error);
-            toast.error("Failed to create client.");
+            console.error(error);
+            toast.error("Erro ao cadastrar cliente.");
         }
     };
 
@@ -59,20 +57,15 @@ export function AddClientDialog({
         onClose();
     };
 
-    const handleOpenChange = (details: {open: boolean}) => {
-        if (!details.open) {
-            handleClose();
-        }
-    };
-
     return (
-        <DialogRoot open={open} onOpenChange={handleOpenChange}>
+        <DialogRoot open={open} onOpenChange={(e) => !e.open && handleClose()}>
             <DialogContent>
-                <form id="new-client-form" onSubmit={handleSubmit(onSubmit)}>
-                    <DialogHeader display="flex" flexDirection="column" gap={2}>
-                        <DialogTitle>Add New Client</DialogTitle>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <DialogHeader>
+                        <DialogTitle>Novo Cliente</DialogTitle>
                         <DialogDescription>
-                            Fill in the details below to add a new client.
+                            Preencha os dados abaixo para cadastrar um novo
+                            cliente.
                         </DialogDescription>
                         <DialogCloseTrigger />
                     </DialogHeader>
@@ -80,14 +73,15 @@ export function AddClientDialog({
                     <DialogBody>
                         <Stack gap={4}>
                             <Field
-                                label="Name"
+                                label="Nome Completo"
                                 invalid={!!errors.name}
                                 errorText={errors.name?.message}
                             >
                                 <Input
                                     {...register("name", {
-                                        required: "Name is required",
+                                        required: "Nome é obrigatório",
                                     })}
+                                    placeholder="Ex: João da Silva"
                                 />
                             </Field>
 
@@ -101,29 +95,32 @@ export function AddClientDialog({
                                     {...register("email", {
                                         pattern: {
                                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                            message: "Invalid email address",
+                                            message: "Email inválido",
                                         },
                                     })}
+                                    placeholder="Ex: joao@email.com"
                                 />
                             </Field>
 
-                            <Field label="Phone">
-                                <Input {...register("phone")} />
+                            <Field label="Telefone / Celular">
+                                <Input
+                                    {...register("phone")}
+                                    placeholder="Ex: (11) 99999-9999"
+                                />
                             </Field>
                         </Stack>
                     </DialogBody>
 
                     <DialogFooter>
                         <Button variant="outline" onClick={handleClose}>
-                            Cancel
+                            Cancelar
                         </Button>
                         <Button
-                            colorScheme="blue"
                             type="submit"
-                            form="new-client-form"
+                            colorScheme="blue"
                             loading={isSubmitting}
                         >
-                            Save
+                            Salvar
                         </Button>
                     </DialogFooter>
                 </form>
