@@ -14,7 +14,9 @@ export class VehicleService {
   }
 
   findAll() {
-    return this.prisma.vehicle.findMany();
+    return this.prisma.vehicle.findMany({
+      include: { client: true },
+    });
   }
 
   async findOne(id: string) {
