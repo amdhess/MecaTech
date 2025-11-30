@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateServiceDto } from './dto/create-service.dto';
 import { UpdateServiceDto } from './dto/update-service.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ServiceOrderStatus } from '@prisma/client';
 
 @Injectable()
 export class ServiceService {
@@ -14,14 +19,18 @@ export class ServiceService {
   }
 
   findAll() {
-    return this.prisma.service.findMany();
+    return this.prisma.service.findMany({
+      where: {
+        deletedAt: null,
+      },
+    });
   }
 
   async findOne(id: string) {
     const service = await this.prisma.service.findUnique({
       where: { id },
     });
-    if (!service) {
+    if (!service || service.deletedAt) {
       throw new NotFoundException(`Service with ID "${id}" not found`);
     }
     return service;
@@ -34,9 +43,30 @@ export class ServiceService {
     });
   }
 
-  remove(id: string) {
-    return this.prisma.service.delete({
+  async remove(id: string) {
+    const activeUsage = await this.prisma.serviceOrder.findFirst({
+      where: {
+        services: { some: { id } },
+        status: {
+          in: [
+            ServiceOrderStatus.PENDING,
+            ServiceOrderStatus.WAITING,
+            ServiceOrderStatus.APPROVED,
+            ServiceOrderStatus.IN_PROGRESS,
+          ],
+        },
+      },
+    });
+
+    if (activeUsage) {
+      throw new ConflictException(
+        'Não é possível remover: Este serviço está sendo usado em uma OS ativa.',
+      );
+    }
+
+    return this.prisma.service.update({
       where: { id },
+      data: { deletedAt: new Date() },
     });
   }
 }
