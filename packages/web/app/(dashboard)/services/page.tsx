@@ -1,11 +1,14 @@
 import {api} from "@/lib/api";
+import {getAuthHeaders} from "@/lib/server-utils";
 import {ServicesView} from "./ServicesView";
 
 async function getServices() {
     try {
-        const res = await api.get("/service");
+        const headers = await getAuthHeaders();
+        const res = await api.get("/service", {headers});
         return res.data;
-    } catch (e) {
+    } catch (error) {
+        console.error("Failed to fetch services:", error);
         return [];
     }
 }
