@@ -30,6 +30,8 @@ jobs:
 
             - name: Generate Prisma Client
               run: pnpm --filter api exec prisma generate
+              env:
+                  DATABASE_URL: "postgresql://user:pass@localhost:5432/db"
 
             - name: Build Backend
               run: pnpm --filter api build
