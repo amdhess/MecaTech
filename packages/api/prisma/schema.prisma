@@ -7,14 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   
+  name      String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Client {
   id     String   @id @default(uuid())
   name   String
   phone  String?
   email  String? @unique
-  
   vehicles Vehicle[]
 
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -28,10 +38,11 @@ model Vehicle {
   color   String?
 
   clientId String
-  client   Client @relation(fields: [clientId], references: [id])
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   serviceOrders ServiceOrder[]
 
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -45,6 +56,7 @@ model Part {
 
   serviceOrders PartsOnServiceOrders[]
 
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -56,7 +68,8 @@ model Service {
   price       Float 
 
   serviceOrders ServiceOrder[] @relation("ServiceToOrder")
-
+  
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
