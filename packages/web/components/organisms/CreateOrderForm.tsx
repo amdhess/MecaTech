@@ -46,7 +46,7 @@ export function CreateOrderForm({
         formState: {errors, isSubmitting},
     } = useForm<CreateOrderDTO>({
         defaultValues: {
-            parts: [{partId: "", quantity: 1}],
+            parts: [],
             serviceIds: [],
         },
     });

@@ -8,31 +8,51 @@ import {
     DialogTitle,
     DialogBody,
     DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import {Field} from "@/components/ui/field";
 import {Button, Input, Stack, HStack} from "@chakra-ui/react";
 import {useForm} from "react-hook-form";
 import {api} from "@/lib/api";
-import {CreatePartDTO} from "@/types/part";
+import {Part, CreatePartDTO} from "@/types/part";
 import toast from "react-hot-toast";
+import {useEffect} from "react";
 
-interface AddPartDialogProps {
+interface PartFormDialogProps {
     open: boolean;
     onClose: () => void;
-    onPartCreated: () => void;
+    onSuccess: () => void;
+    partToEdit?: Part | null;
 }
 
-export function AddPartDialog({
+export function PartFormDialog({
     open,
     onClose,
-    onPartCreated,
-}: AddPartDialogProps) {
+    onSuccess,
+    partToEdit,
+}: PartFormDialogProps) {
+    const isEditing = !!partToEdit;
+
     const {
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: {errors, isSubmitting},
     } = useForm<CreatePartDTO>();
+
+    useEffect(() => {
+        if (open) {
+            if (partToEdit) {
+                setValue("name", partToEdit.name);
+                setValue("sku", partToEdit.sku);
+                setValue("stock", partToEdit.stock);
+                setValue("price", partToEdit.price);
+            } else {
+                reset();
+            }
+        }
+    }, [open, partToEdit, setValue, reset]);
 
     const onSubmit = async (data: CreatePartDTO) => {
         try {
@@ -42,13 +62,19 @@ export function AddPartDialog({
                 price: Number(data.price),
             };
 
-            await api.post("/part", payload);
-            toast.success("Peça cadastrada com sucesso!");
-            onPartCreated();
+            if (isEditing) {
+                await api.patch(`/part/${partToEdit.id}`, payload);
+                toast.success("Peça atualizada com sucesso!");
+            } else {
+                await api.post("/part", payload);
+                toast.success("Peça cadastrada com sucesso!");
+            }
+
+            onSuccess();
             handleClose();
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao cadastrar peça.");
+            toast.error("Erro ao salvar peça.");
         }
     };
 
@@ -61,8 +87,15 @@ export function AddPartDialog({
         <DialogRoot open={open} onOpenChange={(e) => !e.open && handleClose()}>
             <DialogContent>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <DialogHeader>
-                        <DialogTitle>Nova Peça</DialogTitle>
+                    <DialogHeader flexDir={"column"}>
+                        <DialogTitle>
+                            {isEditing ? "Editar Peça" : "Nova Peça"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {isEditing
+                                ? "Atualize os dados do estoque."
+                                : "Preencha os dados para cadastrar."}
+                        </DialogDescription>
                         <DialogCloseTrigger />
                     </DialogHeader>
 
@@ -97,7 +130,7 @@ export function AddPartDialog({
 
                             <HStack gap={4}>
                                 <Field
-                                    label="Estoque Inicial"
+                                    label="Estoque"
                                     invalid={!!errors.stock}
                                     errorText={errors.stock?.message}
                                 >
@@ -105,14 +138,14 @@ export function AddPartDialog({
                                         type="number"
                                         min={0}
                                         {...register("stock", {
-                                            required: "Estoque obrigatório",
+                                            required: "Obrigatório",
                                             min: 0,
                                         })}
                                     />
                                 </Field>
 
                                 <Field
-                                    label="Preço de Venda (R$)"
+                                    label="Preço (R$)"
                                     invalid={!!errors.price}
                                     errorText={errors.price?.message}
                                 >
@@ -121,7 +154,7 @@ export function AddPartDialog({
                                         step="0.01"
                                         min={0}
                                         {...register("price", {
-                                            required: "Preço obrigatório",
+                                            required: "Obrigatório",
                                             min: 0,
                                         })}
                                     />
@@ -139,7 +172,7 @@ export function AddPartDialog({
                             colorScheme="blue"
                             loading={isSubmitting}
                         >
-                            Salvar
+                            {isEditing ? "Salvar" : "Cadastrar"}
                         </Button>
                     </DialogFooter>
                 </form>

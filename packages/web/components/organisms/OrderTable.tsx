@@ -1,17 +1,19 @@
 "use client";
 
 import {Table} from "@/components/ui/table";
-import {ServiceOrder} from "@/types/order";
-import {Badge, IconButton} from "@chakra-ui/react";
-import {Eye} from "lucide-react";
+import {OrderStatusColor, OrderStatusLabel, ServiceOrder} from "@/types/order";
+import {Badge, IconButton, HStack} from "@chakra-ui/react";
+import {Eye, RefreshCw} from "lucide-react";
+import Link from "next/link";
 
 interface OrderTableProps {
     orders: ServiceOrder[];
+    onEditStatus: (order: ServiceOrder) => void;
 }
 
-export function OrderTable({orders}: OrderTableProps) {
+export function OrderTable({orders, onEditStatus}: OrderTableProps) {
     return (
-        <Table.Root>
+        <Table.Root variant="line" size="sm">
             <Table.Header>
                 <Table.Row>
                     <Table.ColumnHeader>ID</Table.ColumnHeader>
@@ -21,13 +23,19 @@ export function OrderTable({orders}: OrderTableProps) {
                     <Table.ColumnHeader textAlign="end">
                         Total
                     </Table.ColumnHeader>
-                    <Table.ColumnHeader></Table.ColumnHeader>
+                    <Table.ColumnHeader textAlign="end">
+                        Ações
+                    </Table.ColumnHeader>
                 </Table.Row>
             </Table.Header>
             <Table.Body>
                 {orders.map((order) => (
                     <Table.Row key={order.id}>
-                        <Table.Cell fontFamily="mono" fontSize="xs">
+                        <Table.Cell
+                            fontFamily="mono"
+                            fontSize="xs"
+                            color="fg.muted"
+                        >
                             {order.id.slice(0, 8)}...
                         </Table.Cell>
                         <Table.Cell>
@@ -35,19 +43,37 @@ export function OrderTable({orders}: OrderTableProps) {
                         </Table.Cell>
                         <Table.Cell>{order.vehicle.client.name}</Table.Cell>
                         <Table.Cell>
-                            <Badge variant="subtle">{order.status}</Badge>
+                            <Badge
+                                colorPalette={OrderStatusColor[order.status]}
+                                variant="solid"
+                            >
+                                {OrderStatusLabel[order.status]}
+                            </Badge>
                         </Table.Cell>
-                        <Table.Cell textAlign="end">
+                        <Table.Cell textAlign="end" fontWeight="medium">
                             R$ {order.totalPrice.toFixed(2)}
                         </Table.Cell>
-                        <Table.Cell>
-                            <IconButton
-                                aria-label="Ver detalhes"
-                                size="xs"
-                                variant="ghost"
-                            >
-                                <Eye />
-                            </IconButton>
+                        <Table.Cell textAlign="end">
+                            <HStack justify="flex-end" gap={1}>
+                                <IconButton
+                                    aria-label="Alterar Status"
+                                    size="xs"
+                                    variant="outline"
+                                    colorPalette="blue"
+                                    onClick={() => onEditStatus(order)}
+                                >
+                                    <RefreshCw size={14} />
+                                </IconButton>
+                                <Link href={`/orders/${order.id}`}>
+                                    <IconButton
+                                        aria-label="Ver detalhes"
+                                        size="xs"
+                                        variant="ghost"
+                                    >
+                                        <Eye size={14} />
+                                    </IconButton>
+                                </Link>
+                            </HStack>
                         </Table.Cell>
                     </Table.Row>
                 ))}

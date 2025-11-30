@@ -2,14 +2,16 @@
 
 import {Table} from "@/components/ui/table";
 import {Vehicle} from "@/types/vehicle";
-import {IconButton, HStack} from "@chakra-ui/react";
+import {HStack, IconButton} from "@chakra-ui/react";
 import {Pencil, Trash2} from "lucide-react";
 
 interface VehicleTableProps {
     vehicles: Vehicle[];
+    onEdit: (vehicle: Vehicle) => void;
+    onDelete: (vehicle: Vehicle) => void;
 }
 
-export function VehicleTable({vehicles}: VehicleTableProps) {
+export function VehicleTable({vehicles, onEdit, onDelete}: VehicleTableProps) {
     return (
         <Table.Root variant="line" size="sm">
             <Table.Header>
@@ -38,6 +40,7 @@ export function VehicleTable({vehicles}: VehicleTableProps) {
                                     size="xs"
                                     variant="ghost"
                                     aria-label="Editar"
+                                    onClick={() => onEdit(vehicle)}
                                 >
                                     <Pencil size={14} />
                                 </IconButton>
@@ -46,6 +49,7 @@ export function VehicleTable({vehicles}: VehicleTableProps) {
                                     variant="ghost"
                                     colorPalette="red"
                                     aria-label="Excluir"
+                                    onClick={() => onDelete(vehicle)}
                                 >
                                     <Trash2 size={14} />
                                 </IconButton>

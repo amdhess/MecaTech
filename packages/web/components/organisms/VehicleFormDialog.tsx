@@ -8,6 +8,7 @@ import {
     DialogTitle,
     DialogBody,
     DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import {Field} from "@/components/ui/field";
 import {
@@ -17,43 +18,70 @@ import {
 import {Button, Input, Stack, HStack} from "@chakra-ui/react";
 import {useForm} from "react-hook-form";
 import {api} from "@/lib/api";
-import {CreateVehicleDTO} from "@/types/vehicle";
+import {Vehicle, CreateVehicleDTO} from "@/types/vehicle";
 import {Client} from "@/types/client";
 import toast from "react-hot-toast";
+import {useEffect} from "react";
 
-interface AddVehicleDialogProps {
+interface VehicleFormDialogProps {
     open: boolean;
     onClose: () => void;
     clients: Client[];
-    onVehicleCreated: () => void;
+    onSuccess: () => void;
+    vehicleToEdit?: Vehicle | null;
 }
 
-export function AddVehicleDialog({
+export function VehicleFormDialog({
     open,
     onClose,
     clients,
-    onVehicleCreated,
-}: AddVehicleDialogProps) {
+    onSuccess,
+    vehicleToEdit,
+}: VehicleFormDialogProps) {
+    const isEditing = !!vehicleToEdit;
+
     const {
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: {errors, isSubmitting},
     } = useForm<CreateVehicleDTO>();
+
+    useEffect(() => {
+        if (open) {
+            if (vehicleToEdit) {
+                setValue("plate", vehicleToEdit.plate);
+                setValue("model", vehicleToEdit.model);
+                setValue("brand", vehicleToEdit.brand);
+                setValue("year", vehicleToEdit.year);
+                setValue("color", vehicleToEdit.color || "");
+                if (vehicleToEdit.client) {
+                    setValue("clientId", vehicleToEdit.client.id);
+                }
+            } else {
+                reset();
+            }
+        }
+    }, [open, vehicleToEdit, setValue, reset]);
 
     const onSubmit = async (data: CreateVehicleDTO) => {
         try {
             const payload = {...data, year: Number(data.year)};
-            await api.post("/vehicle", payload);
 
-            toast.success("Veículo cadastrado com sucesso!");
+            if (isEditing) {
+                await api.patch(`/vehicle/${vehicleToEdit.id}`, payload);
+                toast.success("Veículo atualizado!");
+            } else {
+                await api.post("/vehicle", payload);
+                toast.success("Veículo cadastrado!");
+            }
 
-            onVehicleCreated();
-
+            onSuccess();
             handleClose();
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao cadastrar veículo.");
+            toast.error("Erro ao salvar veículo.");
         }
     };
 
@@ -66,8 +94,15 @@ export function AddVehicleDialog({
         <DialogRoot open={open} onOpenChange={(e) => !e.open && handleClose()}>
             <DialogContent>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <DialogHeader>
-                        <DialogTitle>Novo Veículo</DialogTitle>
+                    <DialogHeader flexDir={"column"}>
+                        <DialogTitle>
+                            {isEditing ? "Editar Veículo" : "Novo Veículo"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {isEditing
+                                ? "Atualize os dados do veículo."
+                                : "Preencha os dados para cadastrar."}
+                        </DialogDescription>
                         <DialogCloseTrigger />
                     </DialogHeader>
 
@@ -82,8 +117,7 @@ export function AddVehicleDialog({
                                     <NativeSelectField
                                         placeholder="Selecione o cliente..."
                                         {...register("clientId", {
-                                            required:
-                                                "O proprietário é obrigatório",
+                                            required: "Obrigatório",
                                         })}
                                     >
                                         {clients.map((client) => (
@@ -106,7 +140,7 @@ export function AddVehicleDialog({
                                 >
                                     <Input
                                         {...register("plate", {
-                                            required: "Placa obrigatória",
+                                            required: "Obrigatório",
                                         })}
                                         placeholder="ABC-1234"
                                         textTransform="uppercase"
@@ -120,7 +154,7 @@ export function AddVehicleDialog({
                                     <Input
                                         type="number"
                                         {...register("year", {
-                                            required: "Ano obrigatório",
+                                            required: "Obrigatório",
                                         })}
                                     />
                                 </Field>
@@ -134,9 +168,8 @@ export function AddVehicleDialog({
                                 >
                                     <Input
                                         {...register("model", {
-                                            required: "Modelo obrigatório",
+                                            required: "Obrigatório",
                                         })}
-                                        placeholder="Ex: Gol 1.0"
                                     />
                                 </Field>
                                 <Field
@@ -146,18 +179,14 @@ export function AddVehicleDialog({
                                 >
                                     <Input
                                         {...register("brand", {
-                                            required: "Marca obrigatória",
+                                            required: "Obrigatório",
                                         })}
-                                        placeholder="Ex: VW"
                                     />
                                 </Field>
                             </HStack>
 
                             <Field label="Cor">
-                                <Input
-                                    {...register("color")}
-                                    placeholder="Ex: Prata"
-                                />
+                                <Input {...register("color")} />
                             </Field>
                         </Stack>
                     </DialogBody>

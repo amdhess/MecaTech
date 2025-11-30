@@ -8,31 +8,50 @@ import {
     DialogTitle,
     DialogBody,
     DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog";
 import {Field} from "@/components/ui/field";
 import {Button, Input, Stack, Textarea} from "@chakra-ui/react";
 import {useForm} from "react-hook-form";
 import {api} from "@/lib/api";
-import {CreateServiceDTO} from "@/types/service";
+import {Service, CreateServiceDTO} from "@/types/service";
 import toast from "react-hot-toast";
+import {useEffect} from "react";
 
-interface AddServiceDialogProps {
+interface ServiceFormDialogProps {
     open: boolean;
     onClose: () => void;
-    onServiceCreated: () => void;
+    onSuccess: () => void;
+    serviceToEdit?: Service | null;
 }
 
-export function AddServiceDialog({
+export function ServiceFormDialog({
     open,
     onClose,
-    onServiceCreated,
-}: AddServiceDialogProps) {
+    onSuccess,
+    serviceToEdit,
+}: ServiceFormDialogProps) {
+    const isEditing = !!serviceToEdit;
+
     const {
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: {errors, isSubmitting},
     } = useForm<CreateServiceDTO>();
+
+    useEffect(() => {
+        if (open) {
+            if (serviceToEdit) {
+                setValue("name", serviceToEdit.name);
+                setValue("price", serviceToEdit.price);
+                setValue("description", serviceToEdit.description || "");
+            } else {
+                reset();
+            }
+        }
+    }, [open, serviceToEdit, setValue, reset]);
 
     const onSubmit = async (data: CreateServiceDTO) => {
         try {
@@ -41,13 +60,19 @@ export function AddServiceDialog({
                 price: Number(data.price),
             };
 
-            await api.post("/service", payload);
-            toast.success("Serviço cadastrado com sucesso!");
-            onServiceCreated();
+            if (isEditing) {
+                await api.patch(`/service/${serviceToEdit.id}`, payload);
+                toast.success("Serviço atualizado com sucesso!");
+            } else {
+                await api.post("/service", payload);
+                toast.success("Serviço cadastrado com sucesso!");
+            }
+
+            onSuccess();
             handleClose();
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao cadastrar serviço.");
+            toast.error("Erro ao salvar serviço.");
         }
     };
 
@@ -60,8 +85,15 @@ export function AddServiceDialog({
         <DialogRoot open={open} onOpenChange={(e) => !e.open && handleClose()}>
             <DialogContent>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <DialogHeader>
-                        <DialogTitle>Novo Serviço</DialogTitle>
+                    <DialogHeader flexDir={"column"}>
+                        <DialogTitle>
+                            {isEditing ? "Editar Serviço" : "Novo Serviço"}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {isEditing
+                                ? "Atualize os dados do serviço."
+                                : "Preencha os dados para cadastrar."}
+                        </DialogDescription>
                         <DialogCloseTrigger />
                     </DialogHeader>
 
@@ -81,7 +113,7 @@ export function AddServiceDialog({
                             </Field>
 
                             <Field
-                                label="Preço (R$)"
+                                label="Preço Mão de Obra (R$)"
                                 invalid={!!errors.price}
                                 errorText={errors.price?.message}
                             >
@@ -115,7 +147,7 @@ export function AddServiceDialog({
                             colorScheme="blue"
                             loading={isSubmitting}
                         >
-                            Salvar
+                            {isEditing ? "Salvar" : "Cadastrar"}
                         </Button>
                     </DialogFooter>
                 </form>

@@ -7,9 +7,11 @@ import {Pencil, Trash2} from "lucide-react";
 
 interface ServiceTableProps {
     services: Service[];
+    onEdit: (service: Service) => void;
+    onDelete: (service: Service) => void;
 }
 
-export function ServiceTable({services}: ServiceTableProps) {
+export function ServiceTable({services, onEdit, onDelete}: ServiceTableProps) {
     return (
         <Table.Root variant="line" size="sm">
             <Table.Header>
@@ -42,6 +44,7 @@ export function ServiceTable({services}: ServiceTableProps) {
                                     size="xs"
                                     variant="ghost"
                                     aria-label="Editar"
+                                    onClick={() => onEdit(service)}
                                 >
                                     <Pencil size={14} />
                                 </IconButton>
@@ -50,6 +53,7 @@ export function ServiceTable({services}: ServiceTableProps) {
                                     variant="ghost"
                                     colorPalette="red"
                                     aria-label="Excluir"
+                                    onClick={() => onDelete(service)}
                                 >
                                     <Trash2 size={14} />
                                 </IconButton>

@@ -7,9 +7,11 @@ import {Pencil, Trash2} from "lucide-react";
 
 interface ClientTableProps {
     clients: Client[];
+    onEdit: (client: Client) => void;
+    onDelete: (client: Client) => void;
 }
 
-export function ClientTable({clients}: ClientTableProps) {
+export function ClientTable({clients, onEdit, onDelete}: ClientTableProps) {
     return (
         <Table.Root variant="line" size="sm">
             <Table.Header>
@@ -38,6 +40,7 @@ export function ClientTable({clients}: ClientTableProps) {
                                     size="xs"
                                     variant="ghost"
                                     aria-label="Editar"
+                                    onClick={() => onEdit(client)}
                                 >
                                     <Pencil size={14} />
                                 </IconButton>
@@ -46,6 +49,7 @@ export function ClientTable({clients}: ClientTableProps) {
                                     variant="ghost"
                                     colorPalette="red"
                                     aria-label="Excluir"
+                                    onClick={() => onDelete(client)}
                                 >
                                     <Trash2 size={14} />
                                 </IconButton>

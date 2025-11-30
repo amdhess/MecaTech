@@ -7,9 +7,11 @@ import {Pencil, Trash2, AlertTriangle} from "lucide-react";
 
 interface PartTableProps {
     parts: Part[];
+    onEdit: (part: Part) => void;
+    onDelete: (part: Part) => void;
 }
 
-export function PartTable({parts}: PartTableProps) {
+export function PartTable({parts, onEdit, onDelete}: PartTableProps) {
     return (
         <Table.Root variant="line" size="sm">
             <Table.Header>
@@ -73,6 +75,7 @@ export function PartTable({parts}: PartTableProps) {
                                         size="xs"
                                         variant="ghost"
                                         aria-label="Editar"
+                                        onClick={() => onEdit(part)}
                                     >
                                         <Pencil size={14} />
                                     </IconButton>
@@ -81,6 +84,7 @@ export function PartTable({parts}: PartTableProps) {
                                         variant="ghost"
                                         colorPalette="red"
                                         aria-label="Excluir"
+                                        onClick={() => onDelete(part)}
                                     >
                                         <Trash2 size={14} />
                                     </IconButton>

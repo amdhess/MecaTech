@@ -14,7 +14,10 @@ import {Field} from "@/components/ui/field";
 import {Button, Input, Stack} from "@chakra-ui/react";
 import {useForm} from "react-hook-form";
 import {api} from "@/lib/api";
+import {Client} from "@/types/client";
 import toast from "react-hot-toast";
+import {useEffect} from "react";
+import {AxiosError} from "axios";
 
 type FormData = {
     name: string;
@@ -22,33 +25,67 @@ type FormData = {
     phone: string;
 };
 
-interface AddClientDialogProps {
+interface ClientFormDialogProps {
     open: boolean;
     onClose: () => void;
-    onClientCreated: () => void; // Alterado para void (padrão novo)
+    onSuccess: () => void;
+    clientToEdit?: Client | null;
 }
 
-export function AddClientDialog({
+export function ClientFormDialog({
     open,
     onClose,
-    onClientCreated,
-}: AddClientDialogProps) {
+    onSuccess,
+    clientToEdit,
+}: ClientFormDialogProps) {
+    const isEditing = !!clientToEdit;
+
     const {
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: {errors, isSubmitting},
     } = useForm<FormData>();
 
+    useEffect(() => {
+        if (open) {
+            if (clientToEdit) {
+                setValue("name", clientToEdit.name);
+                setValue("email", clientToEdit.email || "");
+                setValue("phone", clientToEdit.phone || "");
+            } else {
+                reset();
+            }
+        }
+    }, [open, clientToEdit, setValue, reset]);
+
     const onSubmit = async (data: FormData) => {
         try {
-            await api.post("/client", data);
-            toast.success("Cliente cadastrado com sucesso!");
-            onClientCreated(); // Apenas avisa
+            if (isEditing) {
+                await api.patch(`/client/${clientToEdit.id}`, data);
+                toast.success("Cliente atualizado com sucesso!");
+            } else {
+                await api.post("/client", data);
+                toast.success("Cliente cadastrado com sucesso!");
+            }
+
+            onSuccess();
             handleClose();
         } catch (error) {
             console.error(error);
-            toast.error("Erro ao cadastrar cliente.");
+
+            const axiosError = error as AxiosError<{
+                message: string | string[];
+            }>;
+
+            const message = axiosError.response?.data?.message;
+
+            const displayMessage = Array.isArray(message)
+                ? message[0]
+                : message;
+
+            toast.error(displayMessage || "Ocorreu um erro ao salvar.");
         }
     };
 
@@ -61,11 +98,14 @@ export function AddClientDialog({
         <DialogRoot open={open} onOpenChange={(e) => !e.open && handleClose()}>
             <DialogContent>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <DialogHeader>
-                        <DialogTitle>Novo Cliente</DialogTitle>
+                    <DialogHeader flexDir={"column"}>
+                        <DialogTitle>
+                            {isEditing ? "Editar Cliente" : "Novo Cliente"}
+                        </DialogTitle>
                         <DialogDescription>
-                            Preencha os dados abaixo para cadastrar um novo
-                            cliente.
+                            {isEditing
+                                ? "Atualize os dados do cliente."
+                                : "Preencha os dados para cadastrar."}
                         </DialogDescription>
                         <DialogCloseTrigger />
                     </DialogHeader>
@@ -81,32 +121,17 @@ export function AddClientDialog({
                                     {...register("name", {
                                         required: "Nome é obrigatório",
                                     })}
-                                    placeholder="Ex: João da Silva"
                                 />
                             </Field>
-
                             <Field
                                 label="Email"
                                 invalid={!!errors.email}
                                 errorText={errors.email?.message}
                             >
-                                <Input
-                                    type="email"
-                                    {...register("email", {
-                                        pattern: {
-                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                            message: "Email inválido",
-                                        },
-                                    })}
-                                    placeholder="Ex: joao@email.com"
-                                />
+                                <Input type="email" {...register("email")} />
                             </Field>
-
-                            <Field label="Telefone / Celular">
-                                <Input
-                                    {...register("phone")}
-                                    placeholder="Ex: (11) 99999-9999"
-                                />
+                            <Field label="Telefone">
+                                <Input {...register("phone")} />
                             </Field>
                         </Stack>
                     </DialogBody>
@@ -120,7 +145,7 @@ export function AddClientDialog({
                             colorScheme="blue"
                             loading={isSubmitting}
                         >
-                            Salvar
+                            {isEditing ? "Salvar" : "Cadastrar"}
                         </Button>
                     </DialogFooter>
                 </form>
