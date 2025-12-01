@@ -14,15 +14,16 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { ColorModeButton } from "../ui/color-mode";
+import { UserProfile } from "@/types/user";
 
 interface HeaderProps {
-  user: { name: string; email: string } | null;
+  user: UserProfile | null;
 }
 
 export function Header({ user }: HeaderProps) {
   const router = useRouter();
 
-  const userName = user?.name || "Visitante"; // Usa o nome real, fallback para 'Visitante'
+  const userName = user?.name || "Visitante";
 
   const handleLogout = () => {
     Cookies.remove("mecatech_token");
@@ -55,7 +56,11 @@ export function Header({ user }: HeaderProps) {
 
         <MenuRoot positioning={{ placement: "bottom-end" }}>
           <MenuTrigger cursor="pointer">
-            <Avatar name={userName} size="sm" />
+            <Avatar
+              size="sm"
+              src={user?.avatarUrl || undefined}
+              name={userName}
+            />
           </MenuTrigger>
 
           <MenuContent>
