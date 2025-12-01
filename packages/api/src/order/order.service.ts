@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -137,6 +141,58 @@ export class OrderService {
   async remove(id: string) {
     return this.prisma.serviceOrder.delete({
       where: { id },
+    });
+  }
+
+  async findByPublicToken(token: string) {
+    const order = await this.prisma.serviceOrder.findUnique({
+      where: { publicToken: token },
+      include: {
+        vehicle: {
+          include: { client: true },
+        },
+        services: true,
+        parts: {
+          include: { part: true },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return order;
+  }
+
+  async approveOrder(token: string) {
+    const order = await this.findByPublicToken(token);
+
+    if (
+      order.status !== ServiceOrderStatus.PENDING &&
+      order.status !== ServiceOrderStatus.WAITING
+    ) {
+      throw new ConflictException('This order cannot be approved anymore.');
+    }
+
+    return this.prisma.serviceOrder.update({
+      where: { id: order.id },
+      data: { status: ServiceOrderStatus.APPROVED },
+    });
+  }
+
+  async rejectOrder(token: string) {
+    const order = await this.findByPublicToken(token);
+
+    if (
+      order.status !== ServiceOrderStatus.PENDING &&
+      order.status !== ServiceOrderStatus.WAITING
+    ) {
+      throw new ConflictException('This order cannot be rejected anymore.');
+    }
+
+    return this.prisma.serviceOrder.update({
+      where: { id: order.id },
+      data: { status: ServiceOrderStatus.REJECTED },
     });
   }
 }
