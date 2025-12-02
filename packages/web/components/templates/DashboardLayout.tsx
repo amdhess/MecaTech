@@ -3,12 +3,7 @@
 import { Box, Flex } from "@chakra-ui/react";
 import { Sidebar } from "@/components/organisms/Sidebar";
 import { Header } from "@/components/organisms/Header";
-
-interface UserProfile {
-  userId: string;
-  name: string;
-  email: string;
-}
+import { UserProfile } from "@/types/user";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
