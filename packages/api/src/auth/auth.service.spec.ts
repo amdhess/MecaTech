@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from 'src/prisma/prisma.service';
 
-const mockUsersService = {
-  findByEmail: jest.fn(),
-  create: jest.fn(),
+const mockPrismaService = {
+  user: {
+    findUnique: jest.fn(),
+  },
+  $transaction: jest.fn(),
 };
 
 const mockJwtService = {
@@ -19,7 +21,7 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: UsersService, useValue: mockUsersService },
+        { provide: PrismaService, useValue: mockPrismaService },
         { provide: JwtService, useValue: mockJwtService },
       ],
     }).compile();

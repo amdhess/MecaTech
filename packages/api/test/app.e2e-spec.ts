@@ -31,6 +31,7 @@ describe('AppController (e2e)', () => {
       name: 'App Tester',
       email: 'app@test.com',
       password: 'password123',
+      workshopName: 'Test Workshop',
     });
 
     const loginRes = await request(httpServer).post('/auth/login').send({

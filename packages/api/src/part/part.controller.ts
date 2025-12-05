@@ -6,23 +6,35 @@ import {
   Patch,
   Param,
   Delete,
+  Request,
 } from '@nestjs/common';
 import { PartService } from './part.service';
 import { CreatePartDto } from './dto/create-part.dto';
 import { UpdatePartDto } from './dto/update-part.dto';
+
+interface RequestWithUser {
+  user: { userId: string; workshopId: string };
+}
 
 @Controller('part')
 export class PartController {
   constructor(private readonly partService: PartService) {}
 
   @Post()
-  create(@Body() createPartDto: CreatePartDto) {
-    return this.partService.create(createPartDto);
+  create(
+    @Body() createPartDto: CreatePartDto,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.partService.create(
+      createPartDto,
+      req.user.userId,
+      req.user.workshopId,
+    );
   }
 
   @Get()
-  findAll() {
-    return this.partService.findAll();
+  findAll(@Request() req: RequestWithUser) {
+    return this.partService.findAll(req.user.workshopId);
   }
 
   @Get(':id')

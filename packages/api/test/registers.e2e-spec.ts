@@ -47,6 +47,7 @@ describe('Register Workflow (E2E)', () => {
       name: 'Tester',
       email: 'test@mecatech.com',
       password: 'password123',
+      workshopName: 'Test Workshop',
     });
 
     const loginRes = await request(httpServer)

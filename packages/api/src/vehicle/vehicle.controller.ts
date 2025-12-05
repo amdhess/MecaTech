@@ -6,23 +6,35 @@ import {
   Patch,
   Param,
   Delete,
+  Request,
 } from '@nestjs/common';
 import { VehicleService } from './vehicle.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
+
+interface RequestWithUser {
+  user: { userId: string; workshopId: string };
+}
 
 @Controller('vehicle')
 export class VehicleController {
   constructor(private readonly vehicleService: VehicleService) {}
 
   @Post()
-  create(@Body() createVehicleDto: CreateVehicleDto) {
-    return this.vehicleService.create(createVehicleDto);
+  create(
+    @Body() createVehicleDto: CreateVehicleDto,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.vehicleService.create(
+      createVehicleDto,
+      req.user.userId,
+      req.user.workshopId,
+    );
   }
 
   @Get()
-  findAll() {
-    return this.vehicleService.findAll();
+  findAll(@Request() req: RequestWithUser) {
+    return this.vehicleService.findAll(req.user.workshopId);
   }
 
   @Get(':id')

@@ -12,16 +12,25 @@ import { ServiceOrderStatus } from '@prisma/client';
 export class ServiceService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createServiceDto: CreateServiceDto) {
+  create(
+    createServiceDto: CreateServiceDto,
+    userId: string,
+    workshopId: string,
+  ) {
     return this.prisma.service.create({
-      data: createServiceDto,
+      data: {
+        ...createServiceDto,
+        createdById: userId,
+        workshopId: workshopId,
+      },
     });
   }
 
-  findAll() {
+  findAll(workshopId: string) {
     return this.prisma.service.findMany({
       where: {
         deletedAt: null,
+        workshopId: workshopId,
       },
     });
   }

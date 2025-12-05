@@ -12,7 +12,11 @@ import { ServiceOrderStatus, Prisma } from '@prisma/client';
 export class OrderService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(
+    createOrderDto: CreateOrderDto,
+    userId: string,
+    workshopId: string,
+  ) {
     const { vehicleId, serviceIds, parts } = createOrderDto;
 
     return this.prisma.$transaction(async (tx) => {
@@ -65,6 +69,10 @@ export class OrderService {
           totalPartsPrice,
           totalServicesPrice,
           totalPrice: totalPartsPrice + totalServicesPrice,
+
+          createdById: userId,
+          workshopId: workshopId,
+
           services: {
             connect: serviceIds.map((id) => ({ id })),
           },
@@ -78,11 +86,7 @@ export class OrderService {
         include: {
           vehicle: true,
           services: true,
-          parts: {
-            include: {
-              part: true,
-            },
-          },
+          parts: { include: { part: true } },
         },
       });
 
@@ -90,8 +94,11 @@ export class OrderService {
     });
   }
 
-  findAll() {
+  findAll(workshopId: string) {
     return this.prisma.serviceOrder.findMany({
+      where: {
+        workshopId: workshopId,
+      },
       include: {
         vehicle: {
           include: {

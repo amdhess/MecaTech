@@ -12,17 +12,26 @@ import { ServiceOrderStatus } from '@prisma/client';
 export class VehicleService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createVehicleDto: CreateVehicleDto) {
+  create(
+    createVehicleDto: CreateVehicleDto,
+    userId: string,
+    workshopId: string,
+  ) {
     return this.prisma.vehicle.create({
-      data: createVehicleDto,
+      data: {
+        ...createVehicleDto,
+        createdById: userId,
+        workshopId: workshopId,
+      },
       include: { client: true },
     });
   }
 
-  findAll() {
+  findAll(workshopId: string) {
     return this.prisma.vehicle.findMany({
       where: {
         deletedAt: null,
+        workshopId: workshopId,
       },
       include: { client: true },
     });

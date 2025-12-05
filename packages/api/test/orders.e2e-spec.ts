@@ -51,6 +51,7 @@ describe('Service Order Workflow (E2E)', () => {
       name: 'Admin',
       email: uniqueEmail,
       password: password,
+      workshopName: 'Test Workshop',
     });
 
     const loginRes = await request(httpServer).post('/auth/login').send({

@@ -44,6 +44,7 @@ describe('Advanced Features & Innovation (E2E)', () => {
       name: 'Feature User',
       email: 'feat@test.com',
       password: 'password123',
+      workshopName: 'Test Workshop',
     });
     const loginRes = await request(httpServer).post('/auth/login').send({
       email: 'feat@test.com',

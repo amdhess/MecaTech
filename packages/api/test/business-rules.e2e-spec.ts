@@ -46,6 +46,7 @@ describe('Business Rules and Constraints (E2E)', () => {
       name: 'Manager',
       email: 'manager@rules.com',
       password: 'password123',
+      workshopName: 'Test Workshop',
     });
     const loginRes = await request(httpServer).post('/auth/login').send({
       email: 'manager@rules.com',
